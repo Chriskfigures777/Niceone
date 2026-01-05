@@ -121,15 +121,15 @@
     @apply bg-background text-foreground;
   }
   /* Hide browser default clear button on input fields */
-  input[type="text"]::-webkit-search-cancel-button,
-  input[type="text"]::-webkit-clear-button,
-  input[type="search"]::-webkit-search-cancel-button,
-  input[type="search"]::-webkit-clear-button {
+  input[type='text']::-webkit-search-cancel-button,
+  input[type='text']::-webkit-clear-button,
+  input[type='search']::-webkit-search-cancel-button,
+  input[type='search']::-webkit-clear-button {
     display: none;
     -webkit-appearance: none;
   }
-  input[type="text"]::-ms-clear,
-  input[type="search"]::-ms-clear {
+  input[type='text']::-ms-clear,
+  input[type='search']::-ms-clear {
     display: none;
   }
 }

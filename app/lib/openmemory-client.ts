@@ -5,7 +5,8 @@
 
 // Get API token from environment variable or use the configured MCP token
 // The token from mcp.json: om-5rqj2ru86nmfvydd972qlwbgky5ea1zh
-const OPENMEMORY_API_TOKEN = process.env.OPENMEMORY_API_TOKEN || 'om-5rqj2ru86nmfvydd972qlwbgky5ea1zh';
+const OPENMEMORY_API_TOKEN =
+  process.env.OPENMEMORY_API_TOKEN || 'om-5rqj2ru86nmfvydd972qlwbgky5ea1zh';
 const OPENMEMORY_API_URL = process.env.OPENMEMORY_API_URL || 'https://api.openmemory.dev';
 
 interface Memory {
@@ -57,7 +58,7 @@ export async function addMemory(
     const response = await fetch(`${OPENMEMORY_API_URL}/memories`, {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${OPENMEMORY_API_TOKEN}`,
+        Authorization: `Token ${OPENMEMORY_API_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -85,10 +86,7 @@ export async function addMemory(
  * @param options - Search options including project_id, user_preference, etc.
  * @returns Array of matching memories
  */
-export async function searchMemories(
-  query: string,
-  options: SearchOptions = {}
-): Promise<any[]> {
+export async function searchMemories(query: string, options: SearchOptions = {}): Promise<any[]> {
   if (!OPENMEMORY_API_TOKEN) {
     console.warn('OpenMemory API token is not set. Memory features will be disabled.');
     return [];
@@ -119,7 +117,7 @@ export async function searchMemories(
     const response = await fetch(`${OPENMEMORY_API_URL}/memories/search?${params.toString()}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Token ${OPENMEMORY_API_TOKEN}`,
+        Authorization: `Token ${OPENMEMORY_API_TOKEN}`,
         'Content-Type': 'application/json',
       },
     });
@@ -156,9 +154,7 @@ export async function storeMessages(
 
   try {
     // Convert messages to a conversation memory
-    const conversationText = messages
-      .map((msg) => `${msg.role}: ${msg.content}`)
-      .join('\n');
+    const conversationText = messages.map((msg) => `${msg.role}: ${msg.content}`).join('\n');
 
     const title = `Conversation - ${new Date().toISOString()}`;
     const content = conversationText;
@@ -195,7 +191,3 @@ export async function getUserMemories(
     limit,
   });
 }
-
-
-
-

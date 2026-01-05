@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ChatbotClient } from '@/lib/chatbot_client';
-import { ScrollArea } from '../livekit/scroll-area/scroll-area';
-import { Button } from '@/components/livekit/button';
+import type { ReceivedMessage } from '@livekit/components-react';
 import { PaperPlaneRightIcon, SpinnerIcon } from '@phosphor-icons/react/dist/ssr';
+import { Button } from '@/components/livekit/button';
+import { ChatbotClient } from '@/lib/chatbot_client';
 import { cn } from '@/lib/utils';
-import type { ChatMessage as LiveKitMessage } from '@livekit/components-react';
+import { ScrollArea } from '../livekit/scroll-area/scroll-area';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -17,7 +17,7 @@ interface ChatMessage {
 interface ChatbotViewProps {
   userId?: string;
   email?: string;
-  previousMessages?: LiveKitMessage[];
+  previousMessages?: ReceivedMessage[];
   onStartCall?: () => void;
 }
 
@@ -25,7 +25,7 @@ export function ChatbotView({
   userId = 'default_user',
   email,
   previousMessages = [],
-  onStartCall
+  onStartCall,
 }: ChatbotViewProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,13 +37,13 @@ export function ChatbotView({
   useEffect(() => {
     if (previousMessages.length > 0 && messages.length === 0) {
       const convertedMessages: ChatMessage[] = previousMessages
-        .filter((msg) => msg.message && (msg.from?.identity === 'user' || msg.from?.name === 'assistant'))
+        .filter((msg) => msg.type === 'chatMessage' && msg.message && msg.from)
         .map((msg) => ({
-          role: msg.from?.identity === 'user' ? 'user' : 'assistant',
+          role: msg.from?.isLocal ? 'user' : 'assistant',
           content: msg.message || '',
           timestamp: new Date(msg.timestamp || Date.now()),
         }));
-      
+
       if (convertedMessages.length > 0) {
         setMessages(convertedMessages);
         chatbotClient.setConversationHistory(
@@ -111,20 +111,20 @@ export function ChatbotView({
   };
 
   return (
-    <section className="bg-background relative z-10 h-full w-full overflow-hidden flex flex-col">
+    <section className="bg-background relative z-10 flex h-full w-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-3">
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-b px-4 py-3 backdrop-blur">
+        <div className="mx-auto flex max-w-2xl items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">Chat Mode</h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Continue your conversation - all context is remembered
             </p>
           </div>
           {onStartCall && (
             <button
               onClick={onStartCall}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 transition-colors"
             >
               Start Call
             </button>
@@ -137,8 +137,8 @@ export function ChatbotView({
         <ScrollArea ref={scrollAreaRef} className="h-full px-4 py-6">
           <div className="mx-auto max-w-2xl space-y-4">
             {messages.length === 0 && (
-              <div className="text-center text-muted-foreground py-12">
-                <p className="text-lg mb-2">Chat Mode Active</p>
+              <div className="text-muted-foreground py-12 text-center">
+                <p className="mb-2 text-lg">Chat Mode Active</p>
                 <p className="text-sm">
                   The call has ended, but you can continue chatting here.
                   <br />
@@ -149,30 +149,23 @@ export function ChatbotView({
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={cn(
-                  'flex',
-                  msg.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
+                className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}
               >
                 <div
                   className={cn(
                     'max-w-[80%] rounded-lg px-4 py-2',
-                    msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
+                    msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
                   )}
                 >
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {msg.timestamp.toLocaleTimeString()}
-                  </p>
+                  <p className="mt-1 text-xs opacity-70">{msg.timestamp.toLocaleTimeString()}</p>
                 </div>
               </div>
             ))}
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg px-4 py-2">
-                  <p className="text-sm text-muted-foreground">Thinking...</p>
+                  <p className="text-muted-foreground text-sm">Thinking...</p>
                 </div>
               </div>
             )}
@@ -181,8 +174,8 @@ export function ChatbotView({
       </div>
 
       {/* Chat Input */}
-      <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-t px-4 py-4 backdrop-blur">
+        <div className="mx-auto max-w-2xl">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -199,14 +192,9 @@ export function ChatbotView({
               disabled={isLoading}
               placeholder="Type your message..."
               autoFocus
-              className="flex-1 h-10 px-4 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              className="border-input bg-background focus:ring-ring h-10 flex-1 rounded-md border px-4 text-sm focus:ring-2 focus:outline-none disabled:opacity-50"
             />
-            <Button
-              type="submit"
-              disabled={isLoading}
-              size="icon"
-              variant="primary"
-            >
+            <Button type="submit" disabled={isLoading} size="icon" variant="primary">
               {isLoading ? (
                 <SpinnerIcon className="animate-spin" weight="bold" />
               ) : (
@@ -219,4 +207,3 @@ export function ChatbotView({
     </section>
   );
 }
-

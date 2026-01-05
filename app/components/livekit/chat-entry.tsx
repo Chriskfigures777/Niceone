@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface ChatEntryProps extends React.HTMLAttributes<HTMLLIElement> {
@@ -24,7 +24,12 @@ const DEFAULT_LOCALE = 'en-US';
 const DEFAULT_TIMEZONE = 'America/New_York'; // Eastern Standard Time per user preference
 
 // Format time strings consistently (pure function, can be used on both server and client)
-const formatTimeString = (hours: number, minutes: number, seconds: number, includeSeconds: boolean): string => {
+const formatTimeString = (
+  hours: number,
+  minutes: number,
+  seconds: number,
+  includeSeconds: boolean
+): string => {
   const ampm = hours >= 12 ? 'PM' : 'AM';
   const displayHours = hours % 12 || 12;
   const displayMinutes = minutes.toString().padStart(2, '0');
@@ -46,7 +51,7 @@ export const ChatEntry = ({
   ...props
 }: ChatEntryProps) => {
   const time = useMemo(() => new Date(timestamp), [timestamp]);
-  
+
   // Convert UTC timestamp to Eastern time consistently (works on both server and client)
   // Eastern time is UTC-5 (EST) or UTC-4 (EDT)
   // We'll use a simple approach: convert to Eastern by subtracting 5 hours from UTC
@@ -56,67 +61,80 @@ export const ChatEntry = ({
     const utcHours = time.getUTCHours();
     const utcMinutes = time.getUTCMinutes();
     const utcSeconds = time.getUTCSeconds();
-    
+
     // Convert to Eastern (UTC-5, simplified - doesn't account for DST but is consistent)
     // For a more accurate solution, we'd need to detect DST, but for hydration consistency,
     // we'll use a simple offset that's the same everywhere
     let easternHours = utcHours - 5;
     if (easternHours < 0) easternHours += 24;
-    
+
     return {
       hours: easternHours,
       minutes: utcMinutes,
       seconds: utcSeconds,
     };
   }, [time]);
-  
+
   // Initial state uses deterministic format that's consistent on server and client
   const initialTime = useMemo(() => {
     const title = `${formatTimeString(getEasternTime.hours, getEasternTime.minutes, getEasternTime.seconds, true)} Eastern Standard Time`;
-    const short = formatTimeString(getEasternTime.hours, getEasternTime.minutes, getEasternTime.seconds, false);
+    const short = formatTimeString(
+      getEasternTime.hours,
+      getEasternTime.minutes,
+      getEasternTime.seconds,
+      false
+    );
     return { title, short };
   }, [getEasternTime]);
-  
+
   const [formattedTime, setFormattedTime] = useState(initialTime);
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
-  
+
   useEffect(() => {
     if (mounted) {
       // Update to user's locale after hydration
       try {
-        const userLocale = locale || (typeof navigator !== 'undefined' ? navigator.language : DEFAULT_LOCALE) || DEFAULT_LOCALE;
+        const userLocale =
+          locale ||
+          (typeof navigator !== 'undefined' ? navigator.language : DEFAULT_LOCALE) ||
+          DEFAULT_LOCALE;
         setFormattedTime({
-          title: time.toLocaleTimeString(userLocale, { 
+          title: time.toLocaleTimeString(userLocale, {
             timeStyle: 'full',
-            timeZone: DEFAULT_TIMEZONE 
+            timeZone: DEFAULT_TIMEZONE,
           }),
-          short: time.toLocaleTimeString(userLocale, { 
+          short: time.toLocaleTimeString(userLocale, {
             timeStyle: 'short',
-            timeZone: DEFAULT_TIMEZONE 
+            timeZone: DEFAULT_TIMEZONE,
           }),
         });
       } catch {
         // Fallback to default if locale is invalid
         try {
           setFormattedTime({
-            title: time.toLocaleTimeString(DEFAULT_LOCALE, { 
+            title: time.toLocaleTimeString(DEFAULT_LOCALE, {
               timeStyle: 'full',
-              timeZone: DEFAULT_TIMEZONE 
+              timeZone: DEFAULT_TIMEZONE,
             }),
-            short: time.toLocaleTimeString(DEFAULT_LOCALE, { 
+            short: time.toLocaleTimeString(DEFAULT_LOCALE, {
               timeStyle: 'short',
-              timeZone: DEFAULT_TIMEZONE 
+              timeZone: DEFAULT_TIMEZONE,
             }),
           });
         } catch {
           // Final fallback to simple format
           setFormattedTime({
             title: `${formatTimeString(getEasternTime.hours, getEasternTime.minutes, getEasternTime.seconds, true)} Eastern Standard Time`,
-            short: formatTimeString(getEasternTime.hours, getEasternTime.minutes, getEasternTime.seconds, false),
+            short: formatTimeString(
+              getEasternTime.hours,
+              getEasternTime.minutes,
+              getEasternTime.seconds,
+              false
+            ),
           });
         }
       }

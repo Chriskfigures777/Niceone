@@ -36,7 +36,7 @@ export function getMem0Client(): MemoryClient | null {
  * @param userId - User identifier (e.g., email or user ID)
  */
 export async function storeMessages(
-  messages: Array<{ role: string; content: string }>,
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   userId: string
 ): Promise<void> {
   const client = getMem0Client();
@@ -80,7 +80,7 @@ export async function searchMemories(
     try {
       // Use a general query if empty (can't search with empty query)
       const searchQuery = query.trim() || 'user information and conversation history';
-      
+
       const results = await client.search(searchQuery, {
         api_version: 'v2',
         filters: filters,
@@ -101,7 +101,9 @@ export async function searchMemories(
         });
 
         if (filteredMemories.length > 0) {
-          console.log(`Retrieved ${filteredMemories.length} memories for user ${userId} (attempt ${attempt + 1})`);
+          console.log(
+            `Retrieved ${filteredMemories.length} memories for user ${userId} (attempt ${attempt + 1})`
+          );
           return filteredMemories;
         }
       }
@@ -109,8 +111,10 @@ export async function searchMemories(
       // If no results and we have retries left, wait and retry
       if (attempt < maxRetries) {
         const waitTime = Math.pow(2, attempt) * 3000; // 3s, 6s exponential backoff
-        console.log(`No memories found for user ${userId}, retrying in ${waitTime}ms (attempt ${attempt + 1}/${maxRetries + 1})`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        console.log(
+          `No memories found for user ${userId}, retrying in ${waitTime}ms (attempt ${attempt + 1}/${maxRetries + 1})`
+        );
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
 
@@ -124,7 +128,7 @@ export async function searchMemories(
       // On error, retry if we have attempts left
       if (attempt < maxRetries) {
         const waitTime = Math.pow(2, attempt) * 2000; // 2s, 4s for errors
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
       return [];
@@ -143,4 +147,3 @@ export async function searchMemories(
 export async function getAllMemories(userId: string, limit: number = 20): Promise<any[]> {
   return searchMemories('', userId, limit);
 }
-

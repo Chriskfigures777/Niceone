@@ -35,9 +35,9 @@ export function ViewController({ appConfig }: ViewControllerProps) {
   // Always show SessionView - it handles both connected (call) and disconnected (chatbot) modes
   return (
     <AnimatePresence mode="wait">
-      <MotionSessionView 
-        key="session-view" 
-        {...VIEW_MOTION_PROPS} 
+      <MotionSessionView
+        key="session-view"
+        {...VIEW_MOTION_PROPS}
         appConfig={appConfig}
         onStartSession={start}
         isConnected={isConnected}

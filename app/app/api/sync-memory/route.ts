@@ -43,18 +43,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Store conversation to Mem0 using SDK (works correctly, unlike direct API calls)
+    // Filter out system messages as Mem0 only accepts 'user' | 'assistant'
     try {
-      await storeMessages(conversationHistory, userId);
-      
+      const filteredMessages = conversationHistory.filter(
+        (msg): msg is { role: 'user' | 'assistant'; content: string } =>
+          msg.role === 'user' || msg.role === 'assistant'
+      );
+      await storeMessages(filteredMessages, userId);
+
       console.log('✓ Conversation history synced to Mem0:', {
         userId,
         messageCount: conversationHistory.length,
       });
-      
+
       // Note: Memories take 5-10+ seconds to be indexed
       // The memory retrieval functions have retry logic to handle this delay
       // We don't wait here to avoid blocking the response, but retrieval will retry automatically
-      
+
       return NextResponse.json({
         success: true,
         message: 'Conversation history synced to Mem0',
@@ -84,4 +89,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

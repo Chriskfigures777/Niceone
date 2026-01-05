@@ -11,18 +11,21 @@
 ## Test Results
 
 ### ✅ Python SDK Test
+
 - **Status**: PASSED
 - **Finding**: Messages store successfully but processing is queued
 - **Response**: `{'status': 'PENDING', 'message': 'Memory processing has been queued for background execution'}`
 - **Impact**: Memories need 5-10+ seconds to be indexed before retrieval
 
 ### ⚠️ Memory Retrieval Test
+
 - **Status**: PARTIAL
 - **Finding**: Memories stored but not immediately retrievable
 - **Wait Time**: 3 seconds insufficient, needs 5-10+ seconds
 - **Solution**: Added retry logic with exponential backoff (3s, 6s)
 
 ### ❌ Direct API (curl) Test
+
 - **Status**: FAILED (401 Unauthorized)
 - **Note**: Python SDK works correctly, so this is not blocking
 - **Possible Cause**: API key format or authentication method difference
@@ -30,9 +33,11 @@
 ## Fixes Implemented
 
 ### 1. Chatbot API (`app/api/chatbot/route.ts`)
+
 **Problem**: Stored messages AFTER generating response, so memories weren't available for next message.
 
-**Fix**: 
+**Fix**:
+
 - Store previous conversation BEFORE generating response
 - Store current exchange after response
 - Added 500ms delay after storage to allow indexing to start
@@ -40,9 +45,11 @@
 **Impact**: Memories from previous conversation will be available for context in current message.
 
 ### 2. Memory Manager (`lib/memory_manager.py`)
+
 **Problem**: No retry logic - if memories aren't indexed yet, retrieval fails immediately.
 
 **Fix**:
+
 - Added retry logic with exponential backoff (3s, 6s)
 - Up to 2 retries (3 total attempts)
 - Better logging for debugging
@@ -52,11 +59,13 @@
 ## Code Changes
 
 ### File: `app/api/chatbot/route.ts`
+
 1. Store previous conversation BEFORE generating response
 2. Store current exchange AFTER response
 3. Added 500ms delay after storage
 
 ### File: `lib/memory_manager.py`
+
 1. Added `asyncio` import
 2. Added `max_retries` parameter to `retrieve_memories()`
 3. Implemented exponential backoff retry logic
@@ -104,13 +113,9 @@
 ## How Much to Post to Mem0
 
 Based on testing:
+
 - **Small batches (2-4 messages)**: Index faster, recommended for real-time conversations
 - **Medium batches (4-6 messages)**: Good balance
 - **Large batches (10+ messages)**: May take longer to index, use for bulk storage
 
 **Recommendation**: Store in batches of 4-6 messages for optimal indexing speed.
-
-
-
-
-

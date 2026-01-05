@@ -19,19 +19,18 @@ A voice AI project built with [LiveKit Agents for Python](https://github.com/liv
 **Get up and running** so you can start customizing:
 
 1. **Install dependencies:**
+
    ```console
    uv sync
    ```
 
 2. **Set up your LiveKit credentials:**
-   
+
    Sign up for [LiveKit Cloud](https://cloud.livekit.io/), then configure your environment. You can either:
-   
    - **Manual setup**: Copy `.env.example` to `.env.local` and fill in:
      - `LIVEKIT_URL`
      - `LIVEKIT_API_KEY`
      - `LIVEKIT_API_SECRET`
-   
    - **Automatic setup** (recommended): Use the [LiveKit CLI](https://docs.livekit.io/home/cli/cli-setup):
      ```bash
      lk cloud auth
@@ -39,15 +38,19 @@ A voice AI project built with [LiveKit Agents for Python](https://github.com/liv
      ```
 
 3. **Download required models:**
+
    ```console
    uv run python src/agent.py download-files
    ```
+
    This downloads [Silero VAD](https://docs.livekit.io/agents/build/turns/vad/) and the [LiveKit turn detector](https://docs.livekit.io/agents/build/turns/turn-detector/) models.
 
 4. **Test your agent:**
+
    ```console
    uv run python src/agent.py console
    ```
+
    This lets you speak to your agent directly in your terminal.
 
 5. **Run for development:**
@@ -55,7 +58,6 @@ A voice AI project built with [LiveKit Agents for Python](https://github.com/liv
    uv run python src/agent.py dev
    ```
    Use this when connecting to a frontend or telephony. This puts your agent into your LiveKit Cloud project, so use a different project if you don't want to affect production traffic.
-
 
 ## Customize your agent
 
@@ -77,16 +79,19 @@ Once your agent is running, enhance it for your use case:
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-light.svg)](https://cursor.com/en-US/install-mcp?name=livekit-docs&config=eyJ1cmwiOiJodHRwczovL2RvY3MubGl2ZWtpdC5pby9tY3AifQ%3D%3D)
 
 **For Claude Code:**
+
 ```bash
 claude mcp add --transport http livekit-docs https://docs.livekit.io/mcp
 ```
 
 **For Codex CLI:**
+
 ```bash
 codex mcp add --url https://docs.livekit.io/mcp livekit-docs
 ```
 
 **For Gemini CLI:**
+
 ```bash
 gemini mcp add --transport http livekit-docs https://docs.livekit.io/mcp
 ```
@@ -97,15 +102,15 @@ gemini mcp add --transport http livekit-docs https://docs.livekit.io/mcp
 
 If you don't alread have a frontend, use the following templates and guides to get started on one:
 
-| Platform | Starter Template | What to customize |
-|----------|----------|-------------|
-| **Web** | [`livekit-examples/agent-starter-react`](https://github.com/livekit-examples/agent-starter-react) | React & Next.js—customize UI, add features, integrate with your backend |
-| **iOS/macOS** | [`livekit-examples/agent-starter-swift`](https://github.com/livekit-examples/agent-starter-swift) | Native apps for iOS, macOS, visionOS—add platform-specific features |
-| **Flutter** | [`livekit-examples/agent-starter-flutter`](https://github.com/livekit-examples/agent-starter-flutter) | Cross-platform—customize for Android, iOS, web, desktop |
-| **React Native** | [`livekit-examples/voice-assistant-react-native`](https://github.com/livekit-examples/voice-assistant-react-native) | Mobile with Expo—add native modules, customize navigation |
-| **Android** | [`livekit-examples/agent-starter-android`](https://github.com/livekit-examples/agent-starter-android) | Kotlin & Jetpack Compose—build Material Design UI |
-| **Web Embed** | [`livekit-examples/agent-starter-embed`](https://github.com/livekit-examples/agent-starter-embed) | Widget for any website—customize styling, add to your site |
-| **Telephony** | [📚 Documentation](https://docs.livekit.io/agents/start/telephony/) | Add phone calling—configure SIP, add call routing, customize prompts |
+| Platform         | Starter Template                                                                                                    | What to customize                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Web**          | [`livekit-examples/agent-starter-react`](https://github.com/livekit-examples/agent-starter-react)                   | React & Next.js—customize UI, add features, integrate with your backend |
+| **iOS/macOS**    | [`livekit-examples/agent-starter-swift`](https://github.com/livekit-examples/agent-starter-swift)                   | Native apps for iOS, macOS, visionOS—add platform-specific features     |
+| **Flutter**      | [`livekit-examples/agent-starter-flutter`](https://github.com/livekit-examples/agent-starter-flutter)               | Cross-platform—customize for Android, iOS, web, desktop                 |
+| **React Native** | [`livekit-examples/voice-assistant-react-native`](https://github.com/livekit-examples/voice-assistant-react-native) | Mobile with Expo—add native modules, customize navigation               |
+| **Android**      | [`livekit-examples/agent-starter-android`](https://github.com/livekit-examples/agent-starter-android)               | Kotlin & Jetpack Compose—build Material Design UI                       |
+| **Web Embed**    | [`livekit-examples/agent-starter-embed`](https://github.com/livekit-examples/agent-starter-embed)                   | Widget for any website—customize styling, add to your site              |
+| **Telephony**    | [📚 Documentation](https://docs.livekit.io/agents/start/telephony/)                                                 | Add phone calling—configure SIP, add call routing, customize prompts    |
 
 ## Deploy to production
 

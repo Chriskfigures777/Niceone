@@ -129,24 +129,28 @@ export class ChatbotClient {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         let errorDetails = '';
         let errorData: any = null;
-        
+
         try {
           // Try to get response as text first
           const responseText = await response.text();
-          
+
           if (responseText && responseText.trim()) {
             try {
               // Try to parse as JSON
               errorData = JSON.parse(responseText);
               const extractedError = errorData.error || errorData.message || '';
-              const extractedDetails = errorData.details || errorData.mem0Error?.message || errorData.mem0Error || '';
-              
+              const extractedDetails =
+                errorData.details || errorData.mem0Error?.message || errorData.mem0Error || '';
+
               if (extractedError) {
                 errorMessage = extractedError;
               }
-              
+
               if (extractedDetails) {
-                errorDetails = typeof extractedDetails === 'string' ? extractedDetails : JSON.stringify(extractedDetails);
+                errorDetails =
+                  typeof extractedDetails === 'string'
+                    ? extractedDetails
+                    : JSON.stringify(extractedDetails);
                 // Combine error message and details for better debugging
                 if (errorDetails !== errorMessage) {
                   errorMessage = `${errorMessage}. Details: ${errorDetails}`;
@@ -166,12 +170,12 @@ export class ChatbotClient {
           const readError = e instanceof Error ? e.message : String(e) || 'Unknown error';
           errorMessage = `${errorMessage}. Failed to read response: ${readError}`;
         }
-        
+
         // Ensure we always have a meaningful error message
         if (!errorMessage || errorMessage.trim() === '') {
           errorMessage = `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`;
         }
-        
+
         const errorInfo = {
           status: response.status,
           statusText: response.statusText || 'Unknown',
@@ -179,7 +183,7 @@ export class ChatbotClient {
           ...(errorData && Object.keys(errorData).length > 0 && { errorData }),
           ...(errorDetails && errorDetails.trim() && { details: errorDetails }),
         };
-        
+
         console.error('Failed to sync to Mem0:', JSON.stringify(errorInfo, null, 2));
         return { success: false, error: errorMessage };
       }
@@ -192,8 +196,16 @@ export class ChatbotClient {
           try {
             data = JSON.parse(text);
           } catch (parseError) {
-            console.error('Failed to parse sync response as JSON:', parseError, 'Response text:', text);
-            return { success: false, error: `Invalid JSON response from server: ${text.substring(0, 100)}` };
+            console.error(
+              'Failed to parse sync response as JSON:',
+              parseError,
+              'Response text:',
+              text
+            );
+            return {
+              success: false,
+              error: `Invalid JSON response from server: ${text.substring(0, 100)}`,
+            };
           }
         } else {
           console.warn('Empty response from sync-memory API');
@@ -203,11 +215,14 @@ export class ChatbotClient {
         console.error('Failed to read sync response:', parseError);
         return { success: false, error: 'Failed to read response from server' };
       }
-      
+
       // Check if response indicates success
       if (data.success === true) {
         console.log('✓ Conversation history synced to Mem0:', data);
-        return { success: true, message: data.message || 'Conversation history synced successfully' };
+        return {
+          success: true,
+          message: data.message || 'Conversation history synced successfully',
+        };
       } else {
         // Response was ok but success is false or undefined
         const errorMsg = data.error || data.details || data.message || 'Failed to sync to Mem0';
@@ -218,18 +233,19 @@ export class ChatbotClient {
         return { success: false, error: errorMsg };
       }
     } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : typeof error === 'string' 
-        ? error 
-        : JSON.stringify(error) || 'Unknown error occurred';
-      
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : JSON.stringify(error) || 'Unknown error occurred';
+
       console.error('Error syncing to Mem0:', {
         error: errorMessage,
         errorType: error instanceof Error ? error.constructor.name : typeof error,
         ...(error instanceof Error && error.stack && { stack: error.stack }),
       });
-      
+
       return {
         success: false,
         error: errorMessage,
@@ -237,4 +253,3 @@ export class ChatbotClient {
     }
   }
 }
-

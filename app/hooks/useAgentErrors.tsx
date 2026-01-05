@@ -32,7 +32,7 @@ export function useAgentErrors() {
               </ul>
             )}
             {reasons.length === 1 && <p className="w-full">{reasons[0]}</p>}
-            <p className="w-full mt-2">
+            <p className="mt-2 w-full">
               Make sure the agent server is running. Text chat may still work.
             </p>
           </>

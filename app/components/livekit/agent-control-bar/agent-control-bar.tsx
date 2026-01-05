@@ -1,9 +1,15 @@
 'use client';
 
-import { type HTMLAttributes, useCallback, useState, useEffect } from 'react';
+import { type HTMLAttributes, useCallback, useEffect, useState } from 'react';
 import { Track } from 'livekit-client';
 import { useChat, useRemoteParticipants } from '@livekit/components-react';
-import { ChatTextIcon, PhoneDisconnectIcon, PhoneIcon, GearIcon } from '@phosphor-icons/react/dist/ssr';
+import {
+  ChatTextIcon,
+  GearIcon,
+  PhoneDisconnectIcon,
+  PhoneIcon,
+} from '@phosphor-icons/react/dist/ssr';
+import { SettingsModal } from '@/components/app/settings-modal';
 import { TrackToggle } from '@/components/livekit/agent-control-bar/track-toggle';
 import { Button } from '@/components/livekit/button';
 import { Toggle } from '@/components/livekit/toggle';
@@ -12,7 +18,6 @@ import { ChatInput } from './chat-input';
 import { UseInputControlsProps, useInputControls } from './hooks/use-input-controls';
 import { usePublishPermissions } from './hooks/use-publish-permissions';
 import { TrackSelector } from './track-selector';
-import { SettingsModal } from '@/components/app/settings-modal';
 
 export interface ControlBarControls {
   leave?: boolean;
@@ -203,22 +208,15 @@ export function AgentControlBar({
 
         {/* Start Call button when not connected, End Call when connected */}
         {!isConnected && onStartSession ? (
-          <Button
-            variant="primary"
-            onClick={onStartSession}
-            className="font-mono"
-          >
+          <Button variant="primary" onClick={onStartSession} className="font-mono">
             <PhoneIcon weight="bold" />
             <span className="hidden md:inline">START CALL</span>
             <span className="inline md:hidden">CALL</span>
           </Button>
         ) : (
-          isConnected && visibleControls.leave && (
-            <Button
-              variant="destructive"
-              onClick={onDisconnect}
-              className="font-mono"
-            >
+          isConnected &&
+          visibleControls.leave && (
+            <Button variant="destructive" onClick={onDisconnect} className="font-mono">
               <PhoneDisconnectIcon weight="bold" />
               <span className="hidden md:inline">END CALL</span>
               <span className="inline md:hidden">END</span>

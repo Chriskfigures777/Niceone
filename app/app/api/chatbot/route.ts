@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { storeMessages, searchMemories } from '@/lib/mem0-client';
+import { searchMemories, storeMessages } from '@/lib/mem0-client';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,7 +20,7 @@ interface ChatRequest {
 
 // Simple in-memory cache for recent memories (per user)
 // This reduces redundant Mem0 API calls for consecutive messages
-const memoryCache = new Map<string, { memories: any[], timestamp: number }>();
+const memoryCache = new Map<string, { memories: any[]; timestamp: number }>();
 const CACHE_TTL = 60000; // 1 minute cache
 
 /**
@@ -33,10 +33,7 @@ export async function POST(request: NextRequest) {
     const { message, conversationHistory = [], userId = 'default_user' } = body;
 
     if (!message || !message.trim()) {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
     // OPTIMIZATION 1: Check cache first for recent memories
@@ -45,7 +42,7 @@ export async function POST(request: NextRequest) {
     const now = Date.now();
     let memories: any[] = [];
 
-    if (cached && (now - cached.timestamp) < CACHE_TTL) {
+    if (cached && now - cached.timestamp < CACHE_TTL) {
       // Use cached memories (less than 1 minute old)
       memories = cached.memories;
       console.log(`Using cached memories for user ${userId} (${memories.length} items)`);
@@ -75,9 +72,16 @@ export async function POST(request: NextRequest) {
         if (!mem || typeof mem !== 'string' || mem.trim().length < 10) return false;
         // Only include memories that look like actual conversation content
         const lowerMem = mem.toLowerCase();
-        return ['user', 'said', 'asked', 'mentioned', 'discussed', 'talked', 'conversation', 'told'].some(
-          keyword => lowerMem.includes(keyword)
-        );
+        return [
+          'user',
+          'said',
+          'asked',
+          'mentioned',
+          'discussed',
+          'talked',
+          'conversation',
+          'told',
+        ].some((keyword) => lowerMem.includes(keyword));
       })
       .slice(0, 10); // Limit to 10 most relevant memories to reduce token usage
 
@@ -93,10 +97,10 @@ Keep responses concise and helpful.`;
     // OpenAI maintains context across the entire conversation
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },
-      ...conversationHistory.map((msg) => ({
+      ...(conversationHistory.map((msg) => ({
         role: msg.role,
         content: msg.content,
-      })) as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+      })) as OpenAI.Chat.Completions.ChatCompletionMessageParam[]),
       { role: 'user', content: message },
     ];
 
@@ -108,7 +112,8 @@ Keep responses concise and helpful.`;
       max_tokens: 1500, // Reduced slightly for faster responses while still allowing detailed answers
     });
 
-    const assistantMessage = completion.choices[0]?.message?.content || 'I apologize, I could not generate a response.';
+    const assistantMessage =
+      completion.choices[0]?.message?.content || 'I apologize, I could not generate a response.';
 
     // OPTIMIZATION 5: Store to Mem0 asynchronously (don't wait for it)
     // This allows the response to be returned immediately while storage happens in background
@@ -135,9 +140,11 @@ Keep responses concise and helpful.`;
   } catch (error) {
     console.error('Chatbot API error:', error);
     return NextResponse.json(
-      { error: 'Failed to process message', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to process message',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
 }
-

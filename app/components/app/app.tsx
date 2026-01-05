@@ -33,7 +33,7 @@ export function App({ appConfig }: AppProps) {
     if (typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string') {
       return getSandboxTokenSource(appConfig);
     }
-    
+
     // For local development, use custom token source that includes agent name
     if (appConfig.agentName) {
       console.log('[App] Using agent name:', appConfig.agentName);
@@ -55,11 +55,14 @@ export function App({ appConfig }: AppProps) {
           throw new Error(`Failed to get connection details: ${res.statusText}`);
         }
         const data = await res.json();
-        console.log('[App] Connection details received:', { roomName: data.roomName, serverUrl: data.serverUrl });
+        console.log('[App] Connection details received:', {
+          roomName: data.roomName,
+          serverUrl: data.serverUrl,
+        });
         return data;
       });
     }
-    
+
     return TokenSource.endpoint('/api/connection-details');
   }, [appConfig]);
 

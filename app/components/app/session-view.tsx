@@ -1,8 +1,13 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { useSessionContext, useSessionMessages, useChat, type ReceivedMessage } from '@livekit/components-react';
+import {
+  type ReceivedMessage,
+  useChat,
+  useSessionContext,
+  useSessionMessages,
+} from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
@@ -75,7 +80,7 @@ export const SessionView = ({
   const [chatOpen, setChatOpen] = useState(true); // Always show chat by default
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const isConnected = isConnectedProp ?? session.isConnected;
-  
+
   // Local message state for text mode (when not connected)
   // Load from localStorage on mount
   const [textModeMessages, setTextModeMessages] = useState<ReceivedMessage[]>(() => {
@@ -93,7 +98,7 @@ export const SessionView = ({
     }
     return [];
   });
-  
+
   // Save to localStorage whenever messages change
   useEffect(() => {
     if (typeof window !== 'undefined' && textModeMessages.length > 0) {
@@ -105,10 +110,10 @@ export const SessionView = ({
       }
     }
   }, [textModeMessages]);
-  
+
   // Use chatbot client when not connected
   const chatbotClient = useMemo(() => new ChatbotClient('default_user', undefined), []);
-  
+
   // Merge LiveKit messages with text mode messages
   // Always show text mode messages - they represent the conversation history
   const allMessages = useMemo(() => {
@@ -116,21 +121,21 @@ export const SessionView = ({
     // Text mode messages come first, then LiveKit messages
     // This ensures conversation continuity when switching to call mode
     const combined = [...textModeMessages, ...livekitMessages];
-    
+
     // Remove duplicates based on message ID
-    const uniqueMessages = combined.filter((msg, index, self) => 
-      index === self.findIndex((m) => m.id === msg.id)
+    const uniqueMessages = combined.filter(
+      (msg, index, self) => index === self.findIndex((m) => m.id === msg.id)
     );
-    
+
     // Sort by timestamp to maintain chronological order
     return uniqueMessages.sort((a, b) => a.timestamp - b.timestamp);
   }, [livekitMessages, textModeMessages]);
-  
+
   // NOTE: We do NOT re-send text mode messages when the call starts
   // The agent already has full context from Mem0 memories retrieved in on_enter()
   // Re-sending messages would cause duplicate responses
   // The messages are already stored in Mem0 and will be retrieved by the agent automatically
-  
+
   // Handle starting a session - sync conversation history to Mem0 first
   const handleStartSession = async () => {
     if (!isConnected && chatbotClient) {
@@ -139,47 +144,54 @@ export const SessionView = ({
       try {
         // Convert textModeMessages to ChatbotClient format and set it
         const conversationHistory = textModeMessages
-          .filter(msg => msg.type === 'chatMessage' && msg.from)
-          .map(msg => ({
+          .filter((msg) => msg.type === 'chatMessage' && msg.from)
+          .map((msg) => ({
             role: (msg.from?.isLocal ? 'user' : 'assistant') as 'user' | 'assistant',
             content: msg.message,
           }));
-        
+
         if (conversationHistory.length > 0) {
           chatbotClient.setConversationHistory(conversationHistory);
-          console.log(`Syncing ${conversationHistory.length} messages to Mem0 before starting call...`);
+          console.log(
+            `Syncing ${conversationHistory.length} messages to Mem0 before starting call...`
+          );
         } else {
           console.log('No conversation history to sync');
         }
-        
+
         const syncResult = await chatbotClient.syncToMem0();
         if (syncResult.success) {
           console.log('✓ Conversation history synced successfully:', syncResult.message);
         } else {
           const errorMsg = syncResult.error || 'Unknown error';
           console.warn('⚠ Failed to sync conversation history to Mem0:', errorMsg);
-          console.warn('⚠ The call will still start - agent will retrieve memories from Mem0 when needed');
+          console.warn(
+            '⚠ The call will still start - agent will retrieve memories from Mem0 when needed'
+          );
         }
       } catch (error) {
-        const errorMsg = error instanceof Error 
-          ? error.message 
-          : typeof error === 'string' 
-          ? error 
-          : JSON.stringify(error) || 'Unknown error';
+        const errorMsg =
+          error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+              ? error
+              : JSON.stringify(error) || 'Unknown error';
         console.error('Error syncing conversation history:', {
           error: errorMsg,
           errorType: error instanceof Error ? error.constructor.name : typeof error,
         });
-        console.warn('⚠ The call will still start - agent will retrieve memories from Mem0 when needed');
+        console.warn(
+          '⚠ The call will still start - agent will retrieve memories from Mem0 when needed'
+        );
       }
     }
-    
+
     // Start the session (don't wait for sync to complete)
     if (onStartSession) {
       onStartSession();
     }
   };
-  
+
   // Helper function to create a ReceivedMessage-like object for text mode
   const createTextModeMessage = (
     message: string,
@@ -210,24 +222,24 @@ export const SessionView = ({
       // Add user message to local state immediately
       const userMessage = createTextModeMessage(message, true);
       setTextModeMessages((prev) => [...prev, userMessage]);
-      
+
       try {
         // DO NOT send via LiveKit when not connected - this causes duplicates
         // Only use the chatbot API for text mode
-        
+
         // Get chatbot response
         const response = await chatbotClient.sendMessage(message);
-        
+
         // Add assistant response to local state
         const assistantMessage = createTextModeMessage(response.response, false);
         setTextModeMessages((prev) => [...prev, assistantMessage]);
-        
+
         // DO NOT send assistant response via LiveKit - it's not connected yet
       } catch (error) {
         console.error('Error sending message to chatbot:', error);
         // Remove the user message if chatbot failed
         setTextModeMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
-        
+
         // Show error message
         const errorMessage = createTextModeMessage(
           'Sorry, I encountered an error. Please try again.',
@@ -250,60 +262,64 @@ export const SessionView = ({
   const prevConnectedRef = useRef(isConnected);
   // Track which LiveKit message IDs we've already saved to avoid duplicates
   const savedLiveKitMessageIdsRef = useRef<Set<string>>(new Set());
-  
+
   // Auto-scroll when new messages arrive
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [allMessages]);
-  
+
   // Save LiveKit call messages to text mode state as they come in (to preserve them when call ends)
   useEffect(() => {
     if (isConnected && livekitMessages.length > 0) {
       // Save any new LiveKit messages that we haven't saved yet
-      const newMessages = livekitMessages.filter(msg => !savedLiveKitMessageIdsRef.current.has(msg.id));
-      
+      const newMessages = livekitMessages.filter(
+        (msg) => !savedLiveKitMessageIdsRef.current.has(msg.id)
+      );
+
       if (newMessages.length > 0) {
         console.log(`💾 Saving ${newMessages.length} call messages to preserve them`);
         // Mark these messages as saved
-        newMessages.forEach(msg => savedLiveKitMessageIdsRef.current.add(msg.id));
-        
+        newMessages.forEach((msg) => savedLiveKitMessageIdsRef.current.add(msg.id));
+
         setTextModeMessages((prev) => {
           // Combine existing messages with new call messages, remove duplicates, sort by timestamp
           const combined = [...prev, ...newMessages];
-          const unique = combined.filter((msg, index, self) => 
-            index === self.findIndex((m) => m.id === msg.id)
+          const unique = combined.filter(
+            (msg, index, self) => index === self.findIndex((m) => m.id === msg.id)
           );
           return unique.sort((a, b) => a.timestamp - b.timestamp);
         });
       }
     }
   }, [isConnected, livekitMessages]);
-  
+
   // Also preserve messages when call ends (backup in case some weren't saved)
   useEffect(() => {
     const wasConnected = prevConnectedRef.current;
     const isNowConnected = isConnected;
-    
+
     // When call ends (was connected, now not connected), save any remaining LiveKit messages
     if (wasConnected && !isNowConnected && livekitMessages.length > 0) {
-      const unsavedMessages = livekitMessages.filter(msg => !savedLiveKitMessageIdsRef.current.has(msg.id));
-      
+      const unsavedMessages = livekitMessages.filter(
+        (msg) => !savedLiveKitMessageIdsRef.current.has(msg.id)
+      );
+
       if (unsavedMessages.length > 0) {
         console.log(`💾 Call ended - preserving ${unsavedMessages.length} remaining call messages`);
-        unsavedMessages.forEach(msg => savedLiveKitMessageIdsRef.current.add(msg.id));
-        
+        unsavedMessages.forEach((msg) => savedLiveKitMessageIdsRef.current.add(msg.id));
+
         setTextModeMessages((prev) => {
           const combined = [...prev, ...unsavedMessages];
-          const unique = combined.filter((msg, index, self) => 
-            index === self.findIndex((m) => m.id === msg.id)
+          const unique = combined.filter(
+            (msg, index, self) => index === self.findIndex((m) => m.id === msg.id)
           );
           return unique.sort((a, b) => a.timestamp - b.timestamp);
         });
       }
     }
-    
+
     // Update previous connection state
     prevConnectedRef.current = isConnected;
   }, [isConnected, livekitMessages]);
@@ -353,4 +369,3 @@ export const SessionView = ({
     </section>
   );
 };
-

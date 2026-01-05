@@ -17,7 +17,7 @@ export interface AppConfig {
   // for LiveKit Cloud Sandbox
   sandboxId?: string;
   agentName?: string;
-  
+
   // Cal.com settings
   defaultEmail?: string;
 }
@@ -41,7 +41,7 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   // for LiveKit Cloud Sandbox
   sandboxId: undefined,
   agentName: 'Alex-2f2',
-  
+
   // Cal.com settings
   defaultEmail: undefined,
 };
