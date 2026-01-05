@@ -1,3 +1,3 @@
-web: cd app && export PATH="$HOME/.local/bin:$PATH" && uv run python agent.py start
+web: export PATH="$HOME/.local/bin:$PATH" && cd app && uv run python agent.py start
 
 

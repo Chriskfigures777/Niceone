@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd app && export PATH=\"$HOME/.local/bin:$PATH\" && uv run python agent.py start",
+    "startCommand": "export PATH=\"$HOME/.local/bin:$PATH\" && cd app && uv run python agent.py start",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
