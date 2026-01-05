@@ -5,10 +5,10 @@ nixPkgs = ["python311", "curl"]
 cmds = [
   "cd app",
   "curl -LsSf https://astral.sh/uv/install.sh | sh",
-  "source $HOME/.cargo/env",
+  "export PATH=\"$HOME/.local/bin:$PATH\"",
   "uv sync"
 ]
 
 [start]
-cmd = "cd app && uv run python agent.py start"
+cmd = "cd app && export PATH=\"$HOME/.local/bin:$PATH\" && uv run python agent.py start"
 
