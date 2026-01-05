@@ -8,5 +8,5 @@ cmds = [
 ]
 
 [start]
-cmd = "export PATH=\"$HOME/.local/bin:$PATH\" && export LD_LIBRARY_PATH=\"$(nix-build '<nixpkgs>' -A gcc --no-out-link)/lib:$(nix-build '<nixpkgs>' -A gcc.cc.lib --no-out-link)/lib:$LD_LIBRARY_PATH\" && cd app && uv run python agent.py start"
+cmd = "export PATH=\"$HOME/.local/bin:$PATH\" && export LD_LIBRARY_PATH=\"$(find /nix/store -name libstdc++.so.6 2>/dev/null | head -1 | xargs dirname):$LD_LIBRARY_PATH\" && cd app && uv run python agent.py start"
 
