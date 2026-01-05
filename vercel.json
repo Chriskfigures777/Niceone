@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd app && corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install && pnpm build",
+  "buildCommand": "cd app && corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install --network-timeout=600000 && pnpm build",
   "outputDirectory": "app/.next",
-  "installCommand": "cd app && corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install",
+  "installCommand": "cd app && corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install --network-timeout=600000 --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000",
   "framework": "nextjs"
 }
 
