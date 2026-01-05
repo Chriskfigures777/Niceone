@@ -8,6 +8,8 @@
     "dev:all": "concurrently -n \"AGENT,FRONTEND\" -c \"cyan,magenta\" \"pnpm dev:agent\" \"pnpm dev\"",
     "build": "next build",
     "start": "next start",
+    "start:agent": "uv run python agent.py start",
+    "start:all": "concurrently -n \"AGENT,FRONTEND\" -c \"cyan,magenta\" \"pnpm start:agent\" \"pnpm start\"",
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
