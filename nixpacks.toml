@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python311", "curl", "gcc", "gcc.libc"]
+nixPkgs = ["python311", "curl", "gcc", "stdenv"]
 
 [phases.install]
 cmds = [
@@ -8,5 +8,5 @@ cmds = [
 ]
 
 [start]
-cmd = "export PATH=\"$HOME/.local/bin:$PATH\" && export LD_LIBRARY_PATH=\"/nix/var/nix/profiles/default/lib:$LD_LIBRARY_PATH\" && cd app && uv run python agent.py start"
+cmd = "export PATH=\"$HOME/.local/bin:$PATH\" && export LD_LIBRARY_PATH=\"$(nix-build '<nixpkgs>' -A gcc --no-out-link)/lib:$(nix-build '<nixpkgs>' -A gcc.cc.lib --no-out-link)/lib:$LD_LIBRARY_PATH\" && cd app && uv run python agent.py start"
 
