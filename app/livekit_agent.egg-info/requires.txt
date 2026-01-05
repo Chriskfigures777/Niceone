@@ -1,0 +1,7 @@
+livekit-agents[openai,silero,turn-detector,xai]~=1.3
+livekit-plugins-noise-cancellation~=0.2
+python-dotenv
+python-handlebars>=0.0.3
+httpx
+pytz
+mem0ai
