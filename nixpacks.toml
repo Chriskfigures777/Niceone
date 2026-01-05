@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["python311", "curl"]
+
+[phases.install]
+cmds = [
+  "cd app",
+  "curl -LsSf https://astral.sh/uv/install.sh | sh",
+  "source $HOME/.cargo/env",
+  "uv sync"
+]
+
+[start]
+cmd = "cd app && uv run python agent.py start"
+
