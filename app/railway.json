@@ -1,12 +1,12 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && source $HOME/.cargo/env && uv sync"
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "uv run python agent.py start",
+    "startCommand": "export PATH=\"$HOME/.local/bin:$PATH\" && uv run python agent.py start",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
 }
+
