@@ -29,6 +29,76 @@ configure_ssl()
 # Configure logging level
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+
+def check_livekit_dependencies():
+    """Check if LiveKit dependencies (libstdc++.so.6) are available"""
+    import ctypes
+    import sys
+    import platform
+    
+    logger.info("🔍 Checking LiveKit dependencies...")
+    
+    # Check if we're on Linux (where libstdc++.so.6 is needed)
+    if platform.system() == "Linux":
+        try:
+            # Try to load libstdc++.so.6
+            lib_paths = [
+                "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
+                "/usr/lib/libstdc++.so.6",
+                "/lib/x86_64-linux-gnu/libstdc++.so.6",
+            ]
+            
+            # Also check Nix store if LD_LIBRARY_PATH is set
+            import os
+            ld_library_path = os.environ.get("LD_LIBRARY_PATH", "")
+            if ld_library_path:
+                for path_dir in ld_library_path.split(":"):
+                    if path_dir:
+                        lib_paths.append(f"{path_dir}/libstdc++.so.6")
+            
+            # Try to find in /nix/store
+            import subprocess
+            try:
+                result = subprocess.run(
+                    ["find", "/nix/store", "-name", "libstdc++.so.6"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    nix_path = result.stdout.strip().split("\n")[0]
+                    lib_paths.insert(0, nix_path)
+                    logger.info(f"✓ Found libstdc++.so.6 in Nix store: {nix_path}")
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                pass
+            
+            # Try to load the library
+            loaded = False
+            for lib_path in lib_paths:
+                try:
+                    if os.path.exists(lib_path):
+                        ctypes.CDLL(lib_path)
+                        logger.info(f"✓ Successfully loaded libstdc++.so.6 from: {lib_path}")
+                        loaded = True
+                        break
+                except OSError:
+                    continue
+            
+            if not loaded:
+                logger.warning("⚠️  libstdc++.so.6 not found in standard locations")
+                logger.warning("   This may cause issues when importing LiveKit. Check LD_LIBRARY_PATH.")
+                logger.warning(f"   Current LD_LIBRARY_PATH: {ld_library_path or 'Not set'}")
+            else:
+                logger.info("✓ LiveKit dependencies check passed")
+        except Exception as e:
+            logger.warning(f"⚠️  Could not verify libstdc++.so.6: {e}")
+    else:
+        logger.info(f"✓ Running on {platform.system()} - libstdc++.so.6 check not needed")
+
+
+# Run dependency check before importing LiveKit
+check_livekit_dependencies()
+
 # Load environment variables
 load_dotenv(".env.local")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
